@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import Typography from "@/components/atoms/Typography";
 import StatCard from "@/components/molecules/StatCard";
@@ -5,15 +6,80 @@ import StreakCounter from "@/components/molecules/StreakCounter";
 import AchievementBadge from "@/components/molecules/AchievementBadge";
 import Button from "@/components/atoms/Button";
 import ProgressBar from "@/components/atoms/ProgressBar";
-import { Timer, CheckCircle, TrendingUp, Flame, Trophy, Target } from "lucide-react";
+import TimerDisplay from "@/components/organisms/TimerDisplay";
+import TimerControls from "@/components/molecules/TimerControls";
+import { SessionType } from "@/components/molecules/SessionIndicator";
+import { Timer, CheckCircle, TrendingUp, Flame, Trophy, Target, Volume2, VolumeX } from "lucide-react";
 import { mockTasks, mockAchievements } from "@/data/mockData";
 
+const FOCUS_TIME = 25 * 60; // 25 minutes
+const SHORT_BREAK = 5 * 60; // 5 minutes
+const LONG_BREAK = 15 * 60; // 15 minutes
+
 const HomePage = () => {
+  const [sessionType, setSessionType] = useState<SessionType>("focus");
+  const [timeRemaining, setTimeRemaining] = useState(FOCUS_TIME);
+  const [isRunning, setIsRunning] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [sessionsCompleted, setSessionsCompleted] = useState(0);
+
   const todaysTasks = mockTasks.filter(t => t.status !== "completed").slice(0, 3);
   const recentAchievements = mockAchievements.filter(a => a.unlocked).slice(0, 3);
   const currentLevel = 12;
   const currentXP = 2850;
   const nextLevelXP = 3000;
+
+  const totalTime = sessionType === "focus" ? FOCUS_TIME : sessionType === "shortBreak" ? SHORT_BREAK : LONG_BREAK;
+
+  useEffect(() => {
+    if (!isRunning || timeRemaining <= 0) return;
+
+    const interval = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          handleSessionComplete();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isRunning, timeRemaining]);
+
+  const handleSessionComplete = useCallback(() => {
+    setIsRunning(false);
+
+    if (sessionType === "focus") {
+      const newCount = sessionsCompleted + 1;
+      setSessionsCompleted(newCount);
+
+      // After 4 focus sessions, take a long break
+      if (newCount % 4 === 0) {
+        setSessionType("longBreak");
+        setTimeRemaining(LONG_BREAK);
+      } else {
+        setSessionType("shortBreak");
+        setTimeRemaining(SHORT_BREAK);
+      }
+    } else {
+      setSessionType("focus");
+      setTimeRemaining(FOCUS_TIME);
+    }
+  }, [sessionType, sessionsCompleted]);
+
+  const handlePlayPause = () => {
+    setIsRunning(!isRunning);
+  };
+
+  const handleReset = () => {
+    setIsRunning(false);
+    setTimeRemaining(totalTime);
+  };
+
+  const handleSkip = () => {
+    handleSessionComplete();
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
@@ -26,6 +92,51 @@ const HomePage = () => {
           <Typography variant="body" className="text-muted-foreground">
             Stay focused, stay present. Let's make today count.
           </Typography>
+        </div>
+
+        {/* Timer Section */}
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
+                Focus Timer
+              </h1>
+              <p className="text-muted-foreground">
+                Session {sessionsCompleted + 1} • Stay present, stay focused
+              </p>
+            </div>
+
+            <Button
+              variant="ghost"
+              size="md"
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className="h-12 w-12 p-0 rounded-full"
+            >
+              {soundEnabled ? (
+                <Volume2 className="h-5 w-5" />
+              ) : (
+                <VolumeX className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
+
+          <div className="flex flex-col items-center">
+            <TimerDisplay
+              timeRemaining={timeRemaining}
+              totalTime={totalTime}
+              sessionType={sessionType}
+              currentTask="Write project documentation"
+              isRunning={isRunning}
+              className="mb-8"
+            />
+
+            <TimerControls
+              isRunning={isRunning}
+              onPlayPause={handlePlayPause}
+              onReset={handleReset}
+              onSkip={handleSkip}
+            />
+          </div>
         </div>
 
         {/* Quick Stats */}
@@ -54,28 +165,6 @@ const HomePage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Quick Timer */}
-            <div className="bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5 rounded-xl p-6 border border-primary/20">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <Typography variant="h3" className="mb-1">
-                    Ready to Focus?
-                  </Typography>
-                  <Typography variant="small">
-                    Start a 25-minute session
-                  </Typography>
-                </div>
-                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-float">
-                  <Timer className="h-8 w-8 text-white" />
-                </div>
-              </div>
-              <Link to="/timer">
-                <Button variant="zen" size="lg" className="w-full">
-                  Start Focus Session
-                </Button>
-              </Link>
-            </div>
-
             {/* Today's Tasks */}
             <div className="bg-card rounded-xl p-6 border border-border">
               <div className="flex items-center justify-between mb-4">
