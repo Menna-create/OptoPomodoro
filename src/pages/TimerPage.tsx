@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import TimerDisplay from "@/components/organisms/TimerDisplay";
-import TimerControls from "@/components/molecules/TimerControls";
 import { SessionType } from "@/components/molecules/SessionIndicator";
 import { Volume2, VolumeX } from "lucide-react";
 import Button from "@/components/atoms/Button";
@@ -15,6 +14,9 @@ const TimerPage = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [sessionsCompleted, setSessionsCompleted] = useState(0);
+  const [currentStreak, setCurrentStreak] = useState(5);
+  const [breathsCount, setBreathsCount] = useState(3);
+  const [wellnessStatus, setWellnessStatus] = useState("Take Break");
 
   const totalTime = sessionType === "focus" ? FOCUS_TIME : sessionType === "shortBreak" ? SHORT_BREAK : LONG_BREAK;
 
@@ -59,11 +61,7 @@ const TimerPage = () => {
     setIsRunning(!isRunning);
   };
 
-  const handleReset = () => {
-    setIsRunning(false);
-    setTimeRemaining(totalTime);
-  };
-
+  
   const handleSkip = () => {
     handleSessionComplete();
   };
@@ -71,7 +69,7 @@ const TimerPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5 pb-20 md:pb-0">
       <div className="container mx-auto px-4 py-8 md:py-12">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -107,28 +105,127 @@ const TimerPage = () => {
             className="mb-8"
           />
 
-          {/* Controls */}
-          <TimerControls
-            isRunning={isRunning}
-            onPlayPause={handlePlayPause}
-            onReset={handleReset}
-            onSkip={handleSkip}
-          />
+          {/* Zen Garden Elements */}
+          <div className="flex items-center justify-start mb-4">
+            <div className="text-2xl">
+              🌿 🪨 💧 🎋 🍃 🪵 💎
+            </div>
+          </div>
 
-          {/* Session Info */}
-          <div className="mt-12 grid grid-cols-3 gap-4 text-center">
-            <div className="bg-card/50 backdrop-blur-sm rounded-lg p-4 border border-border">
-              <p className="text-2xl font-bold text-foreground mb-1">{sessionsCompleted}</p>
-              <p className="text-sm text-muted-foreground">Completed</p>
+          {/* Expanded Zen Garden Title */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-serif font-semibold text-foreground">
+              Expanded Zen Garden
+            </h2>
+          </div>
+
+          {/* Three Column Cards Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Card 1: Current Task */}
+            <div className="bg-card/50 backdrop-blur-sm rounded-lg p-6 border border-border">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">🎧</span>
+                <h3 className="font-semibold text-foreground">UI Design</h3>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">⏱️</span>
+                  <span className="text-sm text-muted-foreground">Session {sessionsCompleted + 1}/4</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">⚡</span>
+                  <span className="text-sm text-muted-foreground">High Energy</span>
+                </div>
+              </div>
             </div>
-            <div className="bg-card/50 backdrop-blur-sm rounded-lg p-4 border border-border">
-              <p className="text-2xl font-bold text-foreground mb-1">{Math.floor(sessionsCompleted * 25 / 60)}h</p>
-              <p className="text-sm text-muted-foreground">Focus Time</p>
+
+            {/* Card 2: Analytics */}
+            <div className="bg-card/50 backdrop-blur-sm rounded-lg p-6 border border-border">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">📊</span>
+                <h3 className="font-semibold text-foreground">Analytics</h3>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">🎯</span>
+                  <span className="text-sm text-muted-foreground">78% Focus</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">🔥</span>
+                  <span className="text-sm text-muted-foreground">{currentStreak} Day Streak</span>
+                </div>
+              </div>
             </div>
-            <div className="bg-card/50 backdrop-blur-sm rounded-lg p-4 border border-border">
-              <p className="text-2xl font-bold text-foreground mb-1">{4 - (sessionsCompleted % 4)}</p>
-              <p className="text-sm text-muted-foreground">Until Break</p>
+
+            {/* Card 3: Wellness */}
+            <div className="bg-card/50 backdrop-blur-sm rounded-lg p-6 border border-border">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">🧘</span>
+                <h3 className="font-semibold text-foreground">Wellness</h3>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">💆</span>
+                  <span className="text-sm text-muted-foreground">{wellnessStatus}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">🌿</span>
+                  <span className="text-sm text-muted-foreground">{breathsCount} Breaths</span>
+                </div>
+              </div>
             </div>
+          </div>
+
+          {/* Control Buttons */}
+          <div className="flex items-center justify-center gap-4 mb-8">
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={handlePlayPause}
+              className="px-8 py-3 text-lg font-semibold"
+            >
+              {isRunning ? "PAUSE" : "PLAY"}
+            </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={handleSkip}
+              className="px-8 py-3 text-lg font-semibold"
+            >
+              SKIP
+            </Button>
+          </div>
+
+          {/* Bottom Status Bar */}
+          <div className="bg-card/30 backdrop-blur-sm rounded-lg p-4 border border-border mb-8">
+            <div className="flex items-center justify-center gap-8 text-sm">
+              <div className="flex items-center gap-2">
+                <span>{soundEnabled ? "🔊" : "🔇"}</span>
+                <span className="text-muted-foreground">Focus Mode</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>🎵</span>
+                <span className="text-muted-foreground">Forest Sounds</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>📱</span>
+                <span className="text-muted-foreground">Mobile Sync</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>⚙️</span>
+                <span className="text-muted-foreground">Settings</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Navigation */}
+          <div className="flex items-center justify-center gap-8 text-2xl">
+            <span className="cursor-pointer hover:opacity-70 transition-opacity">🏠</span>
+            <span className="cursor-pointer hover:opacity-70 transition-opacity opacity-100">⏰</span>
+            <span className="cursor-pointer hover:opacity-70 transition-opacity">📋</span>
+            <span className="cursor-pointer hover:opacity-70 transition-opacity">📊</span>
+            <span className="cursor-pointer hover:opacity-70 transition-opacity">👥</span>
+            <span className="cursor-pointer hover:opacity-70 transition-opacity">⚙️</span>
           </div>
         </div>
       </div>
