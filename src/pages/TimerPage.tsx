@@ -11,7 +11,7 @@ const LONG_BREAK = 15 * 60; // 15 minutes
 const TimerPage = () => {
   const [sessionType, setSessionType] = useState<SessionType>("focus");
   const [timeRemaining, setTimeRemaining] = useState(FOCUS_TIME);
-  const [isRunning, setIsRunning] = useState(false);
+  const [isRunning, setIsRunning] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [sessionsCompleted, setSessionsCompleted] = useState(0);
   const [currentStreak, setCurrentStreak] = useState(5);
@@ -184,7 +184,7 @@ const TimerPage = () => {
               onClick={handlePlayPause}
               className="px-8 py-3 text-lg font-semibold"
             >
-              {isRunning ? "PAUSE" : "PLAY"}
+              PAUSE
             </Button>
             <Button
               variant="secondary"
@@ -192,7 +192,7 @@ const TimerPage = () => {
               onClick={handleSkip}
               className="px-8 py-3 text-lg font-semibold"
             >
-              SKIP
+              SKIP BREAK
             </Button>
           </div>
 
